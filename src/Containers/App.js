@@ -5,6 +5,9 @@ import { cursorTo } from 'readline';
 import styled from 'styled-components';
 import Persons from '../Components/Persons/Persons'
 import Cockpit from '../Components/Cockpit/Cockpit';
+import withClass from '../hoc/withClass';
+import Aux from '../hoc/Aux';
+import AuthContext from '../Context/auth-context';
 
 // const StyledButton = styled.button`
 //       background-color: ${props => props.alt ? 'red' : 'blue'};
@@ -31,7 +34,10 @@ class App extends Component {
       {id: "2",name: 'rose', work: 'devo'}
     ],
     otherState: "firose",
-    showPerson: false
+    showPerson: false,
+    showCockpit: true,
+    changeCounter: 0,
+    authenticated: false
   };
  static getDerivedStateFromProps(props, state) {  
    console.log('[App.js] getDerivedStaterFromProps' ,props);
@@ -41,6 +47,9 @@ class App extends Component {
 //   console.log('[App.js] componentDidMount');
 
 //  };
+
+
+
 shouldComponentUpdate(nextProps, nextState){
   return true;
   console.log('[App.js] shouldComponentUpdate');
@@ -77,15 +86,25 @@ componentDidUpdate(){
     persons[personIndex] = person;
 
 
-    this.setState(
-      {persons : persons}
-    );
-   }
+    this.setState((prevState, props) =>{
+     return {
+        persons : persons,
+        changeCounter : prevState.changeCounter + 1
+     };
+    }); 
+  };  
    togglePersonHandler = ()=>{
      const doesShow = this.state.showPerson;
      this.setState({showPerson: !doesShow})
 
    }
+
+   loginHandler= ()=>{
+     this.setState({authenticated: true})
+
+
+   }
+
    deletePersonHandler = (personIndex) =>{
     //  const person = this.state.person.slice();
      const persons = [...this.state.persons]
@@ -119,6 +138,8 @@ componentDidUpdate(){
           persons ={this.state.persons}
           clicked = {this.deletePersonHandler}
           changed = {this.nameChangeHandler}
+          isAuthenticated = {this.state.authenticated}
+          
           />
   
          {/* {this.state.persons.map((person, index)=>{
@@ -173,13 +194,21 @@ componentDidUpdate(){
 
     return (
 
-      <div className={classes.App}>
-        <Cockpit
+
+      <Aux>
+        <button onClick = {()=>{this.setState({showCockpit: false});
+      }}>
+        Remove cockpit
+        </button>
+        <AuthContext.Provider value= {{authenticated: this.state.authenticated, login: this.loginHandler, name: this.state.persons }}>
+       {this.state.showCockpit ? <Cockpit
         title = {this.props.appTitle}
-        persons = {this.state.persons}
+        // persons = {this.state.persons}
+        personsLength = {this.state.persons.length}
         Showpersons = {this.state.showPerson}
         toggle = {this.togglePersonHandler}
-        />
+        login = {this.loginHandler}
+        /> : null}
         {/* <p className= {assingedclasses.join(' ')} >This is my first react app</p>
         <button  className = {btnClass} onClick = {this.togglePersonHandler}>Click Me</button> */}
 
@@ -194,12 +223,12 @@ componentDidUpdate(){
         {/* //withstat */}
         {persons}
         
-
+        </AuthContext.Provider>
         
-      </div>
+      </Aux>
     );
     // return React.createElement('div', {className: "App"},'hello', React.createElement('h1',{className: "App"},'Firose'));
   }
 }
 
-export default App;
+export default withClass(App, classes.App);
